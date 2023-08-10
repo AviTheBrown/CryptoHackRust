@@ -71,6 +71,6 @@ fn ascii_to_chars(ascii_vec: Vec<u8>) -> String {
 
     ascii_vec
         .into_iter()
-        .for_each(|ch| flag.push(char::from_u32(ch.into()).unwrap()));
+        .for_each(|ch| flag.push(ch as char));
     flag
 }

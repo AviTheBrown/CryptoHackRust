@@ -1,7 +1,9 @@
 use hex;
+use std::iter::Iterator;
 use itertools::multiunzip;
 use std::fmt;
 
+#[derive(Debug)]
 struct Bytes(Vec<u8>);
 
 impl Bytes {
@@ -36,11 +38,6 @@ impl From<Vec<u8>> for Bytes {
     }
 }
 
-impl fmt::Debug for Bytes {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Bytes{:?}", self.0)
-    }
-}
 
 fn hash_to_bytes(hash: &str) -> Bytes {
     hex::decode(hash).unwrap().into()
@@ -73,7 +70,7 @@ fn xor_bytes_to_bytes(byte_slice: &[&Bytes]) -> Bytes {
 fn ascii_to_chars(ascii_byte: Bytes) -> String {
     let mut flag = "".to_string();
 
-    ascii_byte.into_iter().for_each(|ch| flag.push(ch as char));
+    ascii_byte.iter().for_each(|ch| flag.push(*ch as char));
     flag
 }
 
@@ -144,5 +141,5 @@ fn main() {
 
     println!("the lenght is : {:?}", key3_bytes.len());
 
-    println!("the string is: {:?}", ascii_to_chars(flag_bytes));
+    println!("the string is: {:?}", ascii_to_chars(Bytes(flag_bytes)));
 }

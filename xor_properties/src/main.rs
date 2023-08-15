@@ -1,7 +1,7 @@
 use hex;
-use std::iter::Iterator;
 use itertools::multiunzip;
 use std::fmt;
+use std::iter::Iterator;
 
 #[derive(Debug)]
 struct Bytes(Vec<u8>);
@@ -26,21 +26,20 @@ impl<'a> Iterator for BytesIterator<'a> {
     }
 }
 
-impl std::iter::FromIterator<u8> for Bytes {
+impl FromIterator<u8> for Bytes {
     fn from_iter<I: IntoIterator<Item = u8>>(iter: I) -> Self {
         Bytes(iter.into_iter().collect())
     }
 }
 
-impl From<Vec<u8>> for Bytes {
-    fn from(vec: Vec<u8>) -> Self {
-        Bytes(vec)
+impl <'a> FromIterator<&'a u8> for Bytes {
+    fn from_iter<I: IntoIterator<Item = &'a u8>>(iter: I) -> Self {
+        Bytes(iter.into_iter().copied().collect())
     }
 }
 
-
 fn hash_to_bytes(hash: &str) -> Bytes {
-    hex::decode(hash).unwrap().into()
+    hex::decode(hash).unwrap().iter().collect()
 }
 
 fn xor_bytes_to_bytes_1(bytes1: &Bytes, bytes2: &Bytes) -> Bytes {
@@ -75,59 +74,20 @@ fn ascii_to_chars(ascii_byte: Bytes) -> String {
 }
 
 fn main() {
-    // the hash values for key1
     let key1 = "a6c8b6733c9b22de7bc0253266a3867df55acde8635e19c73313";
     let k1_b = hash_to_bytes(key1);
 
-    // hash value -> evaluated result of key1 ^ key2.
-    // not knowing the hash of key2
     let key2_xor_key1 = "37dcb292030faa90d07eec17e3b1c6d8daf94c35d4c9191a5e1e";
     let k2_x_k1_b = hash_to_bytes(key2_xor_key1);
 
-    // key1_bytes -> we first decode the hex number and get ther result of the option.
-    // pub fn decode<T: AsRef<[u8]>>(data: T) -> Result<Vec<u8>, FromHexError>
-    //let key1_bytes = hex::decode(key1).unwrap();
-
-    // this decodes key2 ^ key1 ( this HASH is the evaluated result of key1 ^ key2 not key2 itselt)
-    //let key2_xor_key1_bytes = hex::decode(key2_xor_key1).unwrap();
-
     let k2_b = xor_bytes_to_bytes_1(&k1_b, &k2_x_k1_b);
-    // inorder to get the byte value for key2
-    // we iterate over the bytes of key1 and key1&key2 bytes together using zip using map then collecting the bytes.
- //   let key2_bytes: Vec<u8> = key1_bytes
-   //     .iter()
-     //   .zip(key2_xor_key1_bytes.iter())
-       // .map(|(k1, k2)| k1 ^ k2)
-        //.collect();
 
     let key2_xor_key3 = "c1545756687e7573db23aa1c3452a098b71a7fbf0fddddde5fc1";
-    //let key2_xor_key3_bytes = hex::decode(key2_xor_key3).unwrap();
 
     let k2_k3_b = hash_to_bytes(key2_xor_key3);
     let k3_b = xor_bytes_to_bytes_1(&k2_b, &k2_k3_b);
 
-    // the same process as previous
-
     let flag_k1_k2_k3 = "04ee9855208a2cd59091d04767ae47963170d1660df7f56f5faf";
-
     let fk1k2k3_b = hash_to_bytes(flag_k1_k2_k3);
-
-
     let the_flag_b = xor_bytes_to_bytes(&[&fk1k2k3_b, &k1_b, &k2_b, &k3_b]);
-    // this on is a bit differnent as it uses multiple zips to xor all the bytes using the associate propertie
-    //let flag_bytes: Vec<u8> = flag_k1_k2_k3_bytes
-        // clones the byte as it is used on line 41
-      //  .clone()
-        // into_iter() take posession of the object
-        // i cpuld have used iter() as well
-        //.into_iter()
-        // the zips tie each byte, so that they can be used together for whatever reason.
-        //.zip(key1_bytes.iter())
-        //.zip(key2_bytes.iter())
-        //.zip(key3_bytes.iter())
-        // closure using lamda function to xor all the btyes
-        //.map(|(((fg, k1), k2), k3)| fg ^ k1 ^ k2 ^ k3)
-        // collects all result of the inital collection (Vec<u8> from hash::decode()) into the new collection (Vec<u8> type annotation)
-        //.collect();
-
 }
